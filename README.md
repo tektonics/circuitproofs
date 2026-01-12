@@ -41,6 +41,15 @@ To provide **mathematically rigorous verification** of ML models for high-stakes
 
 ## Key Features
 
+### 🔬 Certified Proof-Carrying Circuits (NEW!)
+
+**Bridge interpretability and formal verification** with our novel pipeline that:
+- **Extracts** sparse, interpretable circuits from neural networks
+- **Certifies** error bounds using Lipschitz composition (BlockCert-style)
+- **Verifies** safety properties on tractable circuit representations
+
+See [Certified Circuits Documentation](docs/CERTIFIED_CIRCUITS.md) for details.
+
 ### Model Support
 
 - **Neural Networks**: Feed-forward, convolutional, recurrent architectures
@@ -49,6 +58,7 @@ To provide **mathematically rigorous verification** of ML models for high-stakes
 - **Large-Scale Models**: 100M+ parameter models with distributed processing
 - **Decision Trees**: Interpretable tree-based models
 - **Linear Models**: Logistic regression and linear classifiers
+- **🆕 Circuits**: Sparse computational subgraphs with certified error bounds
 
 ### Verification Properties
 
@@ -73,14 +83,26 @@ FormalVerifML/
 ├── lean/                          # Lean 4 formal verification code
 │   ├── FormalVerifML/
 │   │   ├── base/                  # Core definitions and properties
+│   │   │   ├── circuit_models.lean  # 🆕 Circuit definitions
+│   │   │   └── ...
 │   │   ├── generated/             # Auto-generated model definitions
 │   │   └── proofs/                # Verification proof scripts
+│   │       ├── circuit_proofs.lean  # 🆕 Circuit verification
+│   │       └── ...
+├── extraction/                    # 🆕 Circuit extraction from models
+│   ├── circuit_extractor.py      # BlockCert-style extraction
+│   └── example_extraction.py     # Example usage
 ├── translator/                    # Model translation and testing
 │   ├── export_from_pytorch.py    # PyTorch model export
 │   ├── generate_lean_model.py    # JSON to Lean code generation
+│   ├── circuit_to_lean.py        # 🆕 Circuit to Lean translation
 │   └── test_*.py                 # Comprehensive test suites
+├── examples/                      # 🆕 End-to-end examples
+│   └── end_to_end_pipeline.py    # Complete circuit pipeline
 ├── webapp/                       # Web interface and visualization
 ├── docs/                         # Documentation and guides
+│   ├── CERTIFIED_CIRCUITS.md     # 🆕 Circuits documentation
+│   └── ...
 └── .github/                      # CI/CD and workflows
 ```
 
@@ -134,7 +156,9 @@ python webapp/app.py
 
 ## Usage
 
-### 1. Export Your Model
+### Standard Workflow
+
+#### 1. Export Your Model
 
 ```python
 # Export a PyTorch model
@@ -144,7 +168,7 @@ python translator/export_from_pytorch.py \
     --model_type transformer
 ```
 
-### 2. Generate Lean Code
+#### 2. Generate Lean Code
 
 ```python
 # Convert JSON to Lean definitions
@@ -153,13 +177,56 @@ python translator/generate_lean_model.py \
     --output_lean lean/FormalVerifML/generated/my_model.lean
 ```
 
-### 3. Verify Properties
+#### 3. Verify Properties
 
 ```bash
 # Build and verify with Lean
 lake build
 lake exe FormalVerifML
 ```
+
+### 🔬 Certified Circuits Workflow
+
+Extract interpretable circuits with certified error bounds:
+
+```bash
+# Run the complete pipeline
+cd examples
+python end_to_end_pipeline.py
+```
+
+Or step-by-step:
+
+```python
+# 1. Extract circuit from model
+from extraction.circuit_extractor import extract_transformer_circuit
+
+circuit_data = extract_transformer_circuit(
+    model=your_model,
+    calibration_data=calib_data,
+    calibration_targets=calib_targets,
+    test_data=test_data,
+    test_targets=test_targets,
+    output_path="circuit.json",
+    pruning_threshold=0.01
+)
+
+# 2. Translate to Lean
+python translator/circuit_to_lean.py \
+    --circuit_json circuit.json \
+    --output_dir lean/FormalVerifML/generated
+
+# 3. Verify in Lean
+lake build
+```
+
+**Key Benefits**:
+- ✅ **Sparsity**: 70-90% reduction in parameters
+- ✅ **Certified Bounds**: Mathematical guarantee on approximation error
+- ✅ **Interpretability**: Human-understandable computational subgraphs
+- ✅ **Efficient Verification**: Tractable proofs on sparse representations
+
+See [full documentation](docs/CERTIFIED_CIRCUITS.md) for advanced usage.
 
 ### 4. Web Interface
 

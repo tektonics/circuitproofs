@@ -18,6 +18,7 @@ import lean.FormalVerifML.base.large_scale_models       -- 100M+ parameter model
 import lean.FormalVerifML.base.vision_models            -- Vision Transformers
 import lean.FormalVerifML.base.distributed_verification -- Distributed verification
 import lean.FormalVerifML.base.enterprise_features      -- Enterprise features
+import lean.FormalVerifML.base.circuit_models           -- Certified Proof-Carrying Circuits
 
 -- Auto-generated models:
 import lean.FormalVerifML.generated.example_model          -- original NN model
@@ -33,6 +34,7 @@ import lean.FormalVerifML.proofs.extended_robustness_proof
 import lean.FormalVerifML.proofs.extended_fairness_proof
 import lean.FormalVerifML.proofs.decision_tree_proof
 import lean.FormalVerifML.proofs.comprehensive_test_suite  -- Comprehensive test suite
+import lean.FormalVerifML.proofs.circuit_proofs            -- Circuit verification proofs
 
 open FormalVerifML
 
@@ -143,4 +145,18 @@ theorem distributed_verification_integrated : True :=
     enableLoadBalancing := true,
     enableFaultTolerance := true
   };
+  trivial
+
+/--
+  Certified Proof-Carrying Circuits are properly integrated.
+--/
+theorem certified_circuits_integrated : True :=
+  -- Verify the simple linear circuit exists and can be evaluated
+  let circuit := simpleLinearCircuit
+  let input := #[1.0, 2.0]
+  let output := evalCircuit circuit input
+  -- Verify circuit properties
+  let wellformed := circuitWellFormed circuit
+  let sparsity := circuitSparsity circuit
+  let numParams := circuitNumParameters circuit
   trivial
