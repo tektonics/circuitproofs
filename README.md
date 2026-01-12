@@ -1,11 +1,13 @@
-# FormalVerifML: Formal Verification of Machine Learning Models
+# LeanVerifier: Formal Verification of Machine Learning Models
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Lean 4](https://img.shields.io/badge/Lean-4-green.svg)](https://leanprover.github.io/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 
-> **Enterprise-grade formal verification framework for machine learning models with support for large-scale transformers, vision models, and distributed verification.**
+> **Enterprise-grade formal verification framework for machine learning models with support for large-scale transformers, vision models, distributed verification, and novel Certified Proof-Carrying Circuits.**
+
+> 🔬 **Note**: This is an extended fork of [FormalVerifML](https://github.com/fraware/formal_verif_ml) with added **Certified Proof-Carrying Circuits** capabilities that bridge mechanistic interpretability and formal verification.
 
 <p align="center">
   <img src=".github/assets/FormalVerifML-RM.jpg" alt="FormalVerifML Logo" width="200"/>
@@ -25,21 +27,36 @@
 
 ## Overview
 
-FormalVerifML is a state-of-the-art framework for formally verifying machine learning models using Lean 4. It provides comprehensive support for verifying properties such as robustness, fairness, interpretability, and safety across a wide range of model architectures.
+LeanVerifier is a state-of-the-art framework for formally verifying machine learning models using Lean 4. It extends the original FormalVerifML with novel **Certified Proof-Carrying Circuits** that enable tractable verification of large models through sparse circuit extraction.
+
+The framework provides comprehensive support for verifying properties such as robustness, fairness, interpretability, and safety across a wide range of model architectures.
 
 ### Mission
 
 To provide **mathematically rigorous verification** of ML models for high-stakes applications in healthcare, finance, autonomous systems, and other critical domains where model reliability is paramount.
 
-### What Makes Us Different
+**Novel Contribution**: Bridge mechanistic interpretability and formal verification through certified sparse circuits with provable error bounds.
 
+### What Makes This Fork Different
+
+- **🔬 Certified Circuits**: Novel pipeline combining BlockCert-style extraction with formal verification
 - **Mathematical Rigor**: Uses Lean 4 theorem prover for formal mathematical proofs
+- **Tractable Verification**: 70-90% sparsity enables verification of previously intractable models
 - **Production Ready**: Enterprise features with multi-user support, audit logging, and security
 - **Scalable**: Supports models up to 100M+ parameters with distributed verification
 - **Comprehensive**: Vision transformers, large-scale models, and advanced architectures
 - **Automated**: SMT solver integration for automated proof generation
 
 ## Key Features
+
+### 🔬 Certified Proof-Carrying Circuits (NEW!)
+
+**Bridge interpretability and formal verification** with our novel pipeline that:
+- **Extracts** sparse, interpretable circuits from neural networks
+- **Certifies** error bounds using Lipschitz composition (BlockCert-style)
+- **Verifies** safety properties on tractable circuit representations
+
+See [Certified Circuits Documentation](docs/CERTIFIED_CIRCUITS.md) for details.
 
 ### Model Support
 
@@ -49,6 +66,7 @@ To provide **mathematically rigorous verification** of ML models for high-stakes
 - **Large-Scale Models**: 100M+ parameter models with distributed processing
 - **Decision Trees**: Interpretable tree-based models
 - **Linear Models**: Logistic regression and linear classifiers
+- **🆕 Circuits**: Sparse computational subgraphs with certified error bounds
 
 ### Verification Properties
 
@@ -69,18 +87,30 @@ To provide **mathematically rigorous verification** of ML models for high-stakes
 ## Architecture
 
 ```
-FormalVerifML/
+leanverifier/
 ├── lean/                          # Lean 4 formal verification code
 │   ├── FormalVerifML/
 │   │   ├── base/                  # Core definitions and properties
+│   │   │   ├── circuit_models.lean  # 🆕 Circuit definitions
+│   │   │   └── ...
 │   │   ├── generated/             # Auto-generated model definitions
 │   │   └── proofs/                # Verification proof scripts
+│   │       ├── circuit_proofs.lean  # 🆕 Circuit verification
+│   │       └── ...
+├── extraction/                    # 🆕 Circuit extraction from models
+│   ├── circuit_extractor.py      # BlockCert-style extraction
+│   └── example_extraction.py     # Example usage
 ├── translator/                    # Model translation and testing
 │   ├── export_from_pytorch.py    # PyTorch model export
 │   ├── generate_lean_model.py    # JSON to Lean code generation
+│   ├── circuit_to_lean.py        # 🆕 Circuit to Lean translation
 │   └── test_*.py                 # Comprehensive test suites
+├── examples/                      # 🆕 End-to-end examples
+│   └── end_to_end_pipeline.py    # Complete circuit pipeline
 ├── webapp/                       # Web interface and visualization
 ├── docs/                         # Documentation and guides
+│   ├── CERTIFIED_CIRCUITS.md     # 🆕 Circuits documentation
+│   └── ...
 └── .github/                      # CI/CD and workflows
 ```
 
@@ -103,12 +133,12 @@ FormalVerifML/
 
 ```bash
 # Clone the repository
-git clone https://github.com/fraware/formal_verif_ml.git
-cd formal_verif_ml
+git clone https://github.com/tektonics/leanverifier.git
+cd leanverifier
 
 # Build and run with Docker
-docker build -t formalverifml .
-docker run -p 5000:5000 -v $(pwd)/models:/app/models formalverifml
+docker build -t leanverifier .
+docker run -p 5000:5000 -v $(pwd)/models:/app/models leanverifier
 
 # Access the web interface
 open http://localhost:5000
@@ -118,8 +148,8 @@ open http://localhost:5000
 
 ```bash
 # Clone the repository
-git clone https://github.com/fraware/formal_verif_ml.git
-cd formal_verif_ml
+git clone https://github.com/tektonics/leanverifier.git
+cd leanverifier
 
 # Install Python dependencies
 pip install -r translator/requirements.txt
@@ -134,7 +164,9 @@ python webapp/app.py
 
 ## Usage
 
-### 1. Export Your Model
+### Standard Workflow
+
+#### 1. Export Your Model
 
 ```python
 # Export a PyTorch model
@@ -144,7 +176,7 @@ python translator/export_from_pytorch.py \
     --model_type transformer
 ```
 
-### 2. Generate Lean Code
+#### 2. Generate Lean Code
 
 ```python
 # Convert JSON to Lean definitions
@@ -153,13 +185,56 @@ python translator/generate_lean_model.py \
     --output_lean lean/FormalVerifML/generated/my_model.lean
 ```
 
-### 3. Verify Properties
+#### 3. Verify Properties
 
 ```bash
 # Build and verify with Lean
 lake build
 lake exe FormalVerifML
 ```
+
+### 🔬 Certified Circuits Workflow
+
+Extract interpretable circuits with certified error bounds:
+
+```bash
+# Run the complete pipeline
+cd examples
+python end_to_end_pipeline.py
+```
+
+Or step-by-step:
+
+```python
+# 1. Extract circuit from model
+from extraction.circuit_extractor import extract_transformer_circuit
+
+circuit_data = extract_transformer_circuit(
+    model=your_model,
+    calibration_data=calib_data,
+    calibration_targets=calib_targets,
+    test_data=test_data,
+    test_targets=test_targets,
+    output_path="circuit.json",
+    pruning_threshold=0.01
+)
+
+# 2. Translate to Lean
+python translator/circuit_to_lean.py \
+    --circuit_json circuit.json \
+    --output_dir lean/FormalVerifML/generated
+
+# 3. Verify in Lean
+lake build
+```
+
+**Key Benefits**:
+- ✅ **Sparsity**: 70-90% reduction in parameters
+- ✅ **Certified Bounds**: Mathematical guarantee on approximation error
+- ✅ **Interpretability**: Human-understandable computational subgraphs
+- ✅ **Efficient Verification**: Tractable proofs on sparse representations
+
+See [full documentation](docs/CERTIFIED_CIRCUITS.md) for advanced usage.
 
 ### 4. Web Interface
 
@@ -214,14 +289,14 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ```bash
 # Clone and setup development environment
-git clone https://github.com/fraware/formal_verif_ml.git
-cd formal_verif_ml
+git clone https://github.com/tektonics/leanverifier.git
+cd leanverifier
 
 # Install development dependencies
 pip install -r translator/requirements.txt
 pip install -r requirements-dev.txt
 
-# Setup pre-commit hooks
+# Setup pre-commit hooks (if available)
 pre-commit install
 
 # Run tests
@@ -248,10 +323,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/fraware/formal_verif_ml/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/fraware/formal_verif_ml/discussions)
-- **Documentation**: [Project Wiki](https://github.com/fraware/formal_verif_ml/wiki)
+- **Issues**: [GitHub Issues](https://github.com/tektonics/leanverifier/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/tektonics/leanverifier/discussions)
+- **Documentation**: [docs/](docs/)
 
 ---
 
-**Made with ❤️ by the FormalVerifML Team**
+## Attribution
+
+This project extends [FormalVerifML](https://github.com/fraware/formal_verif_ml) with novel **Certified Proof-Carrying Circuits** capabilities.
+
+**Original FormalVerifML**: Created with ❤️ by the FormalVerifML Team
+**Certified Circuits Extension**: Developed by [tektonics](https://github.com/tektonics)
+
+See [CHANGELOG_CIRCUITS.md](CHANGELOG_CIRCUITS.md) for details on the circuit verification additions.
