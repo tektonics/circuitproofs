@@ -7,34 +7,34 @@
 --   - Enterprise features and advanced architectures.
 --------------------------------------------------------------------------------
 import Mathlib
-import lean.FormalVerifML.base.definitions   -- NeuralNet, LinearModel, DecisionTree, etc.
-import lean.FormalVerifML.base.ml_properties -- Robustness, fairness, etc.
-import lean.FormalVerifML.base.advanced_tactics
-import lean.FormalVerifML.base.advanced_models
-import lean.FormalVerifML.base.symbolic_models
-import lean.FormalVerifML.base.memory_optimized_models  -- Memory optimization
-import lean.FormalVerifML.base.smt_integration          -- SMT solver integration
-import lean.FormalVerifML.base.large_scale_models       -- 100M+ parameter models
-import lean.FormalVerifML.base.vision_models            -- Vision Transformers
-import lean.FormalVerifML.base.distributed_verification -- Distributed verification
-import lean.FormalVerifML.base.enterprise_features      -- Enterprise features
-import lean.FormalVerifML.base.circuit_models           -- Certified Proof-Carrying Circuits
+import FormalVerifML.base.definitions   -- NeuralNet, LinearModel, DecisionTree, etc.
+import FormalVerifML.base.ml_properties -- Robustness, fairness, etc.
+import FormalVerifML.base.advanced_tactics
+import FormalVerifML.base.advanced_models
+import FormalVerifML.base.symbolic_models
+import FormalVerifML.base.memory_optimized_models  -- Memory optimization
+import FormalVerifML.base.smt_integration          -- SMT solver integration
+import FormalVerifML.base.large_scale_models       -- 100M+ parameter models
+import FormalVerifML.base.vision_models            -- Vision Transformers
+import FormalVerifML.base.distributed_verification -- Distributed verification
+import FormalVerifML.base.enterprise_features      -- Enterprise features
+import FormalVerifML.base.circuit_models           -- Certified Proof-Carrying Circuits
 
 -- Auto-generated models:
-import lean.FormalVerifML.generated.example_model          -- original NN model
-import lean.FormalVerifML.generated.another_nn_model         -- generated from another_nn.json
-import lean.FormalVerifML.generated.log_reg_model            -- generated from log_reg.json
-import lean.FormalVerifML.generated.decision_tree_model      -- generated from decision_tree.json
-import lean.FormalVerifML.generated.sample_transformer_model  -- new sample transformer
+import FormalVerifML.generated.example_model          -- original NN model
+import FormalVerifML.generated.another_nn_model         -- generated from another_nn.json
+import FormalVerifML.generated.log_reg_model            -- generated from log_reg.json
+import FormalVerifML.generated.decision_tree_model      -- generated from decision_tree.json
+import FormalVerifML.generated.sample_transformer_model  -- new sample transformer
 
 -- Proof scripts:
-import lean.FormalVerifML.proofs.example_robustness_proof
-import lean.FormalVerifML.proofs.example_fairness_proof
-import lean.FormalVerifML.proofs.extended_robustness_proof
-import lean.FormalVerifML.proofs.extended_fairness_proof
-import lean.FormalVerifML.proofs.decision_tree_proof
-import lean.FormalVerifML.proofs.comprehensive_test_suite  -- Comprehensive test suite
-import lean.FormalVerifML.proofs.circuit_proofs            -- Circuit verification proofs
+import FormalVerifML.proofs.example_robustness_proof
+import FormalVerifML.proofs.example_fairness_proof
+import FormalVerifML.proofs.extended_robustness_proof
+import FormalVerifML.proofs.extended_fairness_proof
+import FormalVerifML.proofs.decision_tree_proof
+import FormalVerifML.proofs.comprehensive_test_suite  -- Comprehensive test suite
+import FormalVerifML.proofs.circuit_proofs            -- Circuit verification proofs
 
 open FormalVerifML
 

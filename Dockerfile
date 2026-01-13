@@ -10,26 +10,32 @@ RUN curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-ini
 # Ensure the correct PATH is set for elan and lake
 ENV PATH="/root/.elan/bin:$PATH"
 
-# 3. Install Lean 4 and lake explicitly
-RUN elan toolchain install leanprover/lean4:4.17.0 && \
-    elan default leanprover/lean4:4.17.0
-
-# 4. Create and move to /app
+# 3. Create and move to /app
 WORKDIR /app
 
-# 5. Copy entire project into /app
+# 4. Copy entire project into /app (includes lean-toolchain which elan will use)
 COPY . /app
+
+# 5. Install the Lean toolchain specified in lean-toolchain
+RUN elan toolchain install $(cat lean-toolchain) && \
+    elan default $(cat lean-toolchain)
 
 # 6. Install Python dependencies
 RUN pip install --no-cache-dir -r translator/requirements.txt
 RUN pip install --no-cache-dir flask
 RUN pip install --no-cache-dir graphviz
 
-# 7. Build with Lake from project root (lakefile.lean is here, with srcDir := "lean")
+# 7. Update lake dependencies
+RUN lake update
+
+# 8. Get Mathlib cache (downloads pre-built .olean files)
+RUN lake exe cache get
+
+# 9. Build with Lake from project root (lakefile.lean is here, with srcDir := "lean")
 RUN lake build
 
-# 9. Expose port 5000 for Flask
+# 10. Expose port 5000 for Flask
 EXPOSE 5000
 
-# 10. Launch your Flask web app
+# 11. Launch your Flask web app
 CMD ["python", "/app/webapp/app.py"]

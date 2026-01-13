@@ -1,3 +1,5 @@
+import Mathlib
+
 /--
 # FormalVerifML Base Definitions
 
@@ -31,8 +33,6 @@ Author: FormalVerifML Team
 License: MIT
 Version: 2.0.0
 --/
-
-import Mathlib
 
 namespace FormalVerifML
 
