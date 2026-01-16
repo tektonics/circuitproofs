@@ -94,7 +94,7 @@ def computeAdvancedSparseAttention
   -- Apply sparse attention pattern
   let maskedScores := scores.zipWith (λ row i =>
     row.zipWith (λ score j =>
-      if pattern.getD i (Array.mkEmpty 0).getD j false then score else Float.negInf
+      if pattern.getD i (Array.mkEmpty 0).getD j false then score else (-1.0 / 0.0)
     ) (List.range row.size)
   ) (List.range scores.size)
 

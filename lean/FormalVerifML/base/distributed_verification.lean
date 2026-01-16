@@ -123,7 +123,7 @@ def executeNodeTask
   (task : VerificationTask)
   (config : DistributedConfig)
   (nodeId : String) : IO NodeResult := do
-  let startTime := IO.monoMsNow
+  let startTime ← IO.monoMsNow
 
   -- Generate SMT formula based on task type
   let smtFormula := match task.propertyType with
@@ -146,9 +146,9 @@ def executeNodeTask
     enableProofs := true
   }
 
-  let smtResult := solveSMT smtConfig smtFormula
+  let smtResult ← solveSMT smtConfig smtFormula
 
-  let endTime := IO.monoMsNow
+  let endTime ← IO.monoMsNow
   let executionTime := Float.ofNat (endTime - startTime) / 1000.0
 
   return {

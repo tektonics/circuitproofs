@@ -122,13 +122,13 @@ def authenticateUser (username : String) (password : String) (users : List User)
   -- Simplified authentication - in practice, this would use proper password hashing
   users.find? (λ user => user.username == username ∧ user.isActive)
 
-def createSession (user : User) (config : EnterpriseConfig) : UserSession :=
-  let sessionId := s!"session_{user.userId}_{IO.monoMsNow}"
+def createSession (user : User) (config : EnterpriseConfig) : IO UserSession := do
+  let now ← IO.monoMsNow
+  let sessionId := s!"session_{user.userId}_{now}"
   let token := s!"token_{sessionId}"
-  let now := IO.monoMsNow
   let expiresAt := now + config.sessionTimeout * 1000
 
-  {
+  return {
     sessionId := sessionId,
     userId := user.userId,
     token := token,
@@ -138,12 +138,13 @@ def createSession (user : User) (config : EnterpriseConfig) : UserSession :=
     lastActivity := now
   }
 
-def validateSession (session : UserSession) (config : EnterpriseConfig) : Bool :=
-  let now := IO.monoMsNow
-  session.isActive ∧ now < session.expiresAt
+def validateSession (session : UserSession) (_config : EnterpriseConfig) : IO Bool := do
+  let now ← IO.monoMsNow
+  return session.isActive ∧ now < session.expiresAt
 
-def updateSessionActivity (session : UserSession) : UserSession :=
-  { session with lastActivity := IO.monoMsNow }
+def updateSessionActivity (session : UserSession) : IO UserSession := do
+  let now ← IO.monoMsNow
+  return { session with lastActivity := now }
 
 /--
 Audit logging functions.
@@ -158,8 +159,8 @@ def logAction
   (success : Bool)
   (config : EnterpriseConfig) : IO AuditLogEntry := do
   if config.enableAuditLogging then
-    let entryId := s!"log_{userId}_{IO.monoMsNow}"
-    let timestamp := IO.monoMsNow
+    let timestamp ← IO.monoMsNow
+    let entryId := s!"log_{userId}_{timestamp}"
 
     return {
       entryId := entryId,
@@ -225,9 +226,9 @@ def createProject
   (name : String)
   (description : String)
   (ownerId : String)
-  (isPublic : Bool) : Project :=
-  let now := IO.monoMsNow
-  {
+  (isPublic : Bool) : IO Project := do
+  let now ← IO.monoMsNow
+  return {
     projectId := s!"project_{ownerId}_{now}",
     name := name,
     description := description,
@@ -239,19 +240,21 @@ def createProject
     status := "active"
   }
 
-def addCollaborator (project : Project) (userId : String) : Project :=
+def addCollaborator (project : Project) (userId : String) : IO Project := do
   if !(project.collaborators.contains userId) then
-    { project with
+    let now ← IO.monoMsNow
+    return { project with
       collaborators := project.collaborators ++ [userId],
-      updatedAt := IO.monoMsNow
+      updatedAt := now
     }
   else
-    project
+    return project
 
-def removeCollaborator (project : Project) (userId : String) : Project :=
-  { project with
+def removeCollaborator (project : Project) (userId : String) : IO Project := do
+  let now ← IO.monoMsNow
+  return { project with
     collaborators := project.collaborators.filter (λ id => id != userId),
-    updatedAt := IO.monoMsNow
+    updatedAt := now
   }
 
 /--
@@ -263,9 +266,9 @@ def createVerificationJob
   (modelId : String)
   (propertyType : String)
   (parameters : List (String × Float))
-  (priority : Nat) : VerificationJob :=
-  let now := IO.monoMsNow
-  {
+  (priority : Nat) : IO VerificationJob := do
+  let now ← IO.monoMsNow
+  return {
     jobId := s!"job_{userId}_{now}",
     projectId := projectId,
     userId := userId,
@@ -282,39 +285,42 @@ def createVerificationJob
     memoryUsage := 0
   }
 
-def startJob (job : VerificationJob) : VerificationJob :=
-  { job with
+def startJob (job : VerificationJob) : IO VerificationJob := do
+  let now ← IO.monoMsNow
+  return { job with
     status := "running",
-    startedAt := IO.monoMsNow
+    startedAt := now
   }
 
-def completeJob (job : VerificationJob) (result : SMTResult) (executionTime : Float) (memoryUsage : Nat) : VerificationJob :=
-  { job with
+def completeJob (job : VerificationJob) (result : SMTResult) (executionTime : Float) (memoryUsage : Nat) : IO VerificationJob := do
+  let now ← IO.monoMsNow
+  return { job with
     status := "completed",
-    completedAt := IO.monoMsNow,
+    completedAt := now,
     result := some result,
     executionTime := executionTime,
     memoryUsage := memoryUsage
   }
 
-def failJob (job : VerificationJob) (error : String) : VerificationJob :=
-  { job with
+def failJob (job : VerificationJob) (error : String) : IO VerificationJob := do
+  let now ← IO.monoMsNow
+  return { job with
     status := "failed",
-    completedAt := IO.monoMsNow,
+    completedAt := now,
     result := some (SMTResult.error error)
   }
 
 /--
 Rate limiting and security features.
 --/
-def checkRateLimit (userId : String) (requests : List Nat) (config : EnterpriseConfig) : Bool :=
+def checkRateLimit (userId : String) (requests : List Nat) (config : EnterpriseConfig) : IO Bool := do
   if config.enableRateLimiting then
-    let now := IO.monoMsNow
+    let now ← IO.monoMsNow
     let oneMinuteAgo := now - 60000  -- 60 seconds in milliseconds
     let recentRequests := requests.filter (λ req => req > oneMinuteAgo)
-    recentRequests.length < config.maxRequestsPerMinute
+    return recentRequests.length < config.maxRequestsPerMinute
   else
-    true
+    return true
 
 def encryptData (data : String) (config : EnterpriseConfig) : String :=
   if config.enableEncryption then
@@ -342,24 +348,27 @@ def executeEnterpriseVerification
   let mut auditLogs := []
 
   -- Log job creation
-  let createLog := logVerificationJob job "job_created" config
+  let createLog ← logVerificationJob job "job_created" config
   auditLogs := auditLogs ++ [createLog]
 
   -- Check permissions
   if !(canCreateJob user project) then
-    let permissionLog := logAction user.userId "permission_denied" s!"job_{job.jobId}" "Insufficient permissions" "127.0.0.1" "FormalVerifML/1.0" false config
+    let permissionLog ← logAction user.userId "permission_denied" s!"job_{job.jobId}" "Insufficient permissions" "127.0.0.1" "FormalVerifML/1.0" false config
     auditLogs := auditLogs ++ [permissionLog]
-    return (failJob job "Insufficient permissions"), auditLogs
+    let failedJob ← failJob job "Insufficient permissions"
+    return (failedJob, auditLogs)
 
   -- Check rate limiting
-  if !(checkRateLimit user.userId [] config) then
-    let rateLimitLog := logAction user.userId "rate_limit_exceeded" s!"job_{job.jobId}" "Rate limit exceeded" "127.0.0.1" "FormalVerifML/1.0" false config
+  let rateLimitOk ← checkRateLimit user.userId [] config
+  if !rateLimitOk then
+    let rateLimitLog ← logAction user.userId "rate_limit_exceeded" s!"job_{job.jobId}" "Rate limit exceeded" "127.0.0.1" "FormalVerifML/1.0" false config
     auditLogs := auditLogs ++ [rateLimitLog]
-    return (failJob job "Rate limit exceeded"), auditLogs
+    let failedJob ← failJob job "Rate limit exceeded"
+    return (failedJob, auditLogs)
 
   -- Start job
-  let startedJob := startJob job
-  let startLog := logVerificationJob startedJob "job_started" config
+  let startedJob ← startJob job
+  let startLog ← logVerificationJob startedJob "job_started" config
   auditLogs := auditLogs ++ [startLog]
 
   -- Execute verification
@@ -374,10 +383,10 @@ def executeEnterpriseVerification
     enableFaultTolerance := true
   }
 
-  let results := executeDistributedVerification tasks distributedConfig
+  let results ← executeDistributedVerification tasks distributedConfig
 
   -- Process results
-  let completedJob := if results.length > 0 then
+  let completedJob ← if results.length > 0 then
     let firstResult := results[0]!
     let aggregatedResult := firstResult.aggregatedResult
     let executionTime := firstResult.totalExecutionTime
@@ -388,10 +397,10 @@ def executeEnterpriseVerification
     failJob startedJob "No results returned"
 
   -- Log completion
-  let completeLog := logVerificationJob completedJob "job_completed" config
+  let completeLog ← logVerificationJob completedJob "job_completed" config
   auditLogs := auditLogs ++ [completeLog]
 
-  return completedJob, auditLogs
+  return (completedJob, auditLogs)
 
 /--
 Generate enterprise report with audit trail.

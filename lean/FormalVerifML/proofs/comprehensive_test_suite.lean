@@ -58,9 +58,9 @@ def testAttentionRobustness (config : TestConfig) : IO (List TestResult) := do
   let mut results := []
 
   -- Test 1: Basic attention robustness
-  let startTime := IO.monoMsNow
+  let startTime ← IO.monoMsNow
   let robust := attentionRobust (λ x => multiHeadAttention config.testModel.attentionHeads[0]! x) config.robustnessEpsilon config.robustnessDelta
-  let endTime := IO.monoMsNow
+  let endTime ← IO.monoMsNow
   let executionTime := Float.ofNat (endTime - startTime) / 1000.0
 
   results := results ++ [{
@@ -72,9 +72,9 @@ def testAttentionRobustness (config : TestConfig) : IO (List TestResult) := do
 
   -- Test 2: SMT-based attention robustness
   if config.enableSMTTests then
-    let startTime := IO.monoMsNow
-    let smtResult := generateRobustnessProof config.testModel config.robustnessEpsilon config.robustnessDelta config.smtConfig
-    let endTime := IO.monoMsNow
+    let startTime ← IO.monoMsNow
+    let smtResult ← generateRobustnessProof config.testModel config.robustnessEpsilon config.robustnessDelta config.smtConfig
+    let endTime ← IO.monoMsNow
     let executionTime := Float.ofNat (endTime - startTime) / 1000.0
 
     let status := match smtResult with
@@ -104,9 +104,9 @@ def testCausalMasking (config : TestConfig) : IO (List TestResult) := do
   let mut results := []
 
   -- Test 1: Basic causal masking
-  let startTime := IO.monoMsNow
+  let startTime ← IO.monoMsNow
   let causal := causalMasking (λ tokens => evalTransformer config.testModel tokens)
-  let endTime := IO.monoMsNow
+  let endTime ← IO.monoMsNow
   let executionTime := Float.ofNat (endTime - startTime) / 1000.0
 
   results := results ++ [{
@@ -118,9 +118,9 @@ def testCausalMasking (config : TestConfig) : IO (List TestResult) := do
 
   -- Test 2: SMT-based causal masking
   if config.enableSMTTests then
-    let startTime := IO.monoMsNow
-    let smtResult := generateCausalMaskingProof config.testModel config.smtConfig
-    let endTime := IO.monoMsNow
+    let startTime ← IO.monoMsNow
+    let smtResult ← generateCausalMaskingProof config.testModel config.smtConfig
+    let endTime ← IO.monoMsNow
     let executionTime := Float.ofNat (endTime - startTime) / 1000.0
 
     let status := match smtResult with
@@ -150,9 +150,9 @@ def testMemoryOptimization (config : TestConfig) : IO (List TestResult) := do
   let mut results := []
 
   -- Test 1: Memory efficiency
-  let startTime := IO.monoMsNow
+  let startTime ← IO.monoMsNow
   let memoryEfficient := memoryEfficient config.memoryOptimizedModel
-  let endTime := IO.monoMsNow
+  let endTime ← IO.monoMsNow
   let executionTime := Float.ofNat (endTime - startTime) / 1000.0
 
   results := results ++ [{
@@ -163,9 +163,9 @@ def testMemoryOptimization (config : TestConfig) : IO (List TestResult) := do
   }]
 
   -- Test 2: Sparse attention validity
-  let startTime := IO.monoMsNow
+  let startTime ← IO.monoMsNow
   let sparseValid := sparseAttentionValid config.memoryOptimizedModel
-  let endTime := IO.monoMsNow
+  let endTime ← IO.monoMsNow
   let executionTime := Float.ofNat (endTime - startTime) / 1000.0
 
   results := results ++ [{
@@ -176,9 +176,9 @@ def testMemoryOptimization (config : TestConfig) : IO (List TestResult) := do
   }]
 
   -- Test 3: Chunk size reasonableness
-  let startTime := IO.monoMsNow
+  let startTime ← IO.monoMsNow
   let chunkReasonable := chunkSizeReasonable config.memoryOptimizedModel
-  let endTime := IO.monoMsNow
+  let endTime ← IO.monoMsNow
   let executionTime := Float.ofNat (endTime - startTime) / 1000.0
 
   results := results ++ [{
@@ -190,9 +190,9 @@ def testMemoryOptimization (config : TestConfig) : IO (List TestResult) := do
 
   -- Test 4: SMT-based memory efficiency
   if config.enableSMTTests then
-    let startTime := IO.monoMsNow
-    let smtResult := generateMemoryEfficiencyProof config.memoryOptimizedModel config.smtConfig
-    let endTime := IO.monoMsNow
+    let startTime ← IO.monoMsNow
+    let smtResult ← generateMemoryEfficiencyProof config.memoryOptimizedModel config.smtConfig
+    let endTime ← IO.monoMsNow
     let executionTime := Float.ofNat (endTime - startTime) / 1000.0
 
     let status := match smtResult with
@@ -222,9 +222,9 @@ def testInterpretability (config : TestConfig) : IO (List TestResult) := do
   let mut results := []
 
   -- Test 1: Basic interpretability
-  let startTime := IO.monoMsNow
+  let startTime ← IO.monoMsNow
   let interpretable := interpretable (λ x => evalTransformer config.testModel #[1, 2, 3]) config.interpretabilityDelta config.interpretabilityEta
-  let endTime := IO.monoMsNow
+  let endTime ← IO.monoMsNow
   let executionTime := Float.ofNat (endTime - startTime) / 1000.0
 
   results := results ++ [{
@@ -235,9 +235,9 @@ def testInterpretability (config : TestConfig) : IO (List TestResult) := do
   }]
 
   -- Test 2: Gradient interpretability
-  let startTime := IO.monoMsNow
+  let startTime ← IO.monoMsNow
   let gradInterpretable := gradientInterpretable (λ x => (evalTransformer config.testModel #[1, 2, 3])[0]!) 0.01
-  let endTime := IO.monoMsNow
+  let endTime ← IO.monoMsNow
   let executionTime := Float.ofNat (endTime - startTime) / 1000.0
 
   results := results ++ [{
@@ -256,9 +256,9 @@ def testFairness (config : TestConfig) : IO (List TestResult) := do
   let mut results := []
 
   -- Test 1: Attention fairness
-  let startTime := IO.monoMsNow
+  let startTime ← IO.monoMsNow
   let attentionFair := attentionFairness (λ x => multiHeadAttention config.testModel.attentionHeads[0]! x) 0
-  let endTime := IO.monoMsNow
+  let endTime ← IO.monoMsNow
   let executionTime := Float.ofNat (endTime - startTime) / 1000.0
 
   results := results ++ [{
@@ -277,9 +277,9 @@ def testSequenceInvariance (config : TestConfig) : IO (List TestResult) := do
   let mut results := []
 
   -- Test 1: Basic sequence invariance
-  let startTime := IO.monoMsNow
+  let startTime ← IO.monoMsNow
   let invariant := sequenceInvariant (λ tokens => evalTransformer config.testModel tokens) (λ tokens => tokens)
-  let endTime := IO.monoMsNow
+  let endTime ← IO.monoMsNow
   let executionTime := Float.ofNat (endTime - startTime) / 1000.0
 
   results := results ++ [{
@@ -298,27 +298,27 @@ def runComprehensiveTestSuite (config : TestConfig) : IO (List TestResult) := do
   let mut allResults := []
 
   -- Test attention robustness
-  let robustnessResults := testAttentionRobustness config
+  let robustnessResults ← testAttentionRobustness config
   allResults := allResults ++ robustnessResults
 
   -- Test causal masking
-  let causalResults := testCausalMasking config
+  let causalResults ← testCausalMasking config
   allResults := allResults ++ causalResults
 
   -- Test memory optimization
   if config.enableMemoryTests then
-    let memoryResults := testMemoryOptimization config
+    let memoryResults ← testMemoryOptimization config
     allResults := allResults ++ memoryResults
 
   -- Test interpretability
   if config.enablePropertyTests then
-    let interpretabilityResults := testInterpretability config
+    let interpretabilityResults ← testInterpretability config
     allResults := allResults ++ interpretabilityResults
 
-    let fairnessResults := testFairness config
+    let fairnessResults ← testFairness config
     allResults := allResults ++ fairnessResults
 
-    let invarianceResults := testSequenceInvariance config
+    let invarianceResults ← testSequenceInvariance config
     allResults := allResults ++ invarianceResults
 
   return allResults
@@ -364,7 +364,7 @@ def generateTestReport (results : List TestResult) : String :=
 Main test execution function.
 --/
 def main (config : TestConfig) : IO String := do
-  let results := runComprehensiveTestSuite config
+  let results ← runComprehensiveTestSuite config
   return generateTestReport results
 
 /--
