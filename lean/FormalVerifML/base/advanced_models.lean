@@ -19,11 +19,11 @@ Adds `pad` rows at the top and bottom, and `pad` zeros to the left and right of 
 def padMatrix (input : Array (Array Float)) (pad : Nat) : Array (Array Float) :=
   let H := input.size
   let W := if H > 0 then (input[0]!).size else 0
-  let paddedRow := Array.mkArray (W + 2 * pad) 0.0
-  let topBottom := Array.mkArray pad paddedRow
+  let paddedRow := Array.replicate (W + 2 * pad) 0.0
+  let topBottom := Array.replicate pad paddedRow
   let middle := input.map (λ row =>
-    let leftPad  := Array.mkArray pad 0.0
-    let rightPad := Array.mkArray pad 0.0
+    let leftPad  := Array.replicate pad 0.0
+    let rightPad := Array.replicate pad 0.0
     leftPad ++ row ++ rightPad)
   topBottom ++ middle ++ topBottom
 
@@ -39,19 +39,22 @@ def conv2d (layer : ConvLayer) (input : Array (Array Float)) : Array (Array Floa
   let filterWidth  := if filterHeight > 0 then (layer.filter[0]!).size else 0
   let outHeight := ((H - filterHeight) / layer.stride) + 1
   let outWidth  := ((W - filterWidth) / layer.stride) + 1
-  let mutable output := Array.mkEmpty outHeight
-  for i in List.range outHeight do
-    let mutable rowRes := Array.mkEmpty outWidth
-    for j in List.range outWidth do
-      let mutable sum := 0.0
-      for k in List.range filterHeight do
-        for l in List.range filterWidth do
-          let a := (padded.getD (i * layer.stride + k) (Array.mkEmpty 0)).getD (j * layer.stride + l) 0.0
-          let b := (layer.filter.getD k (Array.mkEmpty 0)).getD l 0.0
-          sum := sum + a * b
-      rowRes := rowRes.push sum
-    output := output.push rowRes
-  output
+  Id.run do
+    let mut output : Array (Array Float) := Array.mkEmpty outHeight
+    for i in List.range outHeight do
+      let mut rowRes : Array Float := Array.mkEmpty outWidth
+      for j in List.range outWidth do
+        let mut sum : Float := 0.0
+        for k in List.range filterHeight do
+          for l in List.range filterWidth do
+            let paddedRow := padded.getD (i * layer.stride + k) #[]
+            let a : Float := paddedRow.getD (j * layer.stride + l) 0.0
+            let filterRow := layer.filter.getD k #[]
+            let b : Float := filterRow.getD l 0.0
+            sum := sum + a * b
+        rowRes := rowRes.push sum
+      output := output.push rowRes
+    return output
 
 /--
 Skeleton for a Convolutional Neural Network.
@@ -71,7 +74,7 @@ First applies the convolutional layers, then flattens the result, and finally ap
 def evalConvNet (cnn : ConvNet) (x : Array (Array Float)) : Array Float :=
   let conv_output := cnn.convLayers.foldl (λ acc layer => conv2d layer acc) x
   let flattened : Array Float := conv_output.foldl (λ acc row => acc ++ row) #[]
-  cnn.fcLayers.foldl (λ acc (w, b) =>
+  cnn.fcLayers.foldl (λ acc (_w, b) =>
     let dot := (Array.zip acc b).foldl (λ s (a, bi) => s + a * bi) 0.0
     #[dot]
   ) flattened
@@ -111,14 +114,14 @@ Evaluate the RecurrentNet on a sequence of input vectors.
 Starts with a zero hidden state, updates it with the first available RNN cell, and then applies the FC layer.
 --/
 def evalRecurrentNet (rn : RecurrentNet) (xs : List (Array Float)) : Array Float :=
-  let initial_hidden : Array Float := Array.mkArray rn.hiddenDim 0.0
+  let initial_hidden : Array Float := Array.replicate rn.hiddenDim 0.0
   let final_hidden := xs.foldl (λ h x =>
     match rn.cells with
     | []       => h
     | cell :: _ => evalRNNCell cell x h
   ) initial_hidden
-  let (w, b) := rn.fcLayer
-  evalLinearModel { inputDim := rn.hiddenDim, weights := w.foldl (λ acc row => acc ++ row) #[], bias := 0.0 } final_hidden
+  let (w, _b) := rn.fcLayer
+  #[evalLinearModel { inputDim := rn.hiddenDim, weights := w.foldl (λ acc row => acc ++ row) #[], bias := 0.0 } final_hidden]
 
 /--
 Helper: Multiply two matrices A and B.
@@ -128,16 +131,21 @@ def matrixMul (A B : Array (Array Float)) : Array (Array Float) :=
   let m := A.size
   let n := if m > 0 then (A[0]!).size else 0
   let p := if B.size > 0 then (B[0]!).size else 0
-  let mutable result := Array.mkEmpty m
-  for i in List.range m do
-    let mutable row := Array.mkEmpty p
-    for j in List.range p do
-      let mutable sum := 0.0
-      for k in List.range n do
-         sum := sum + (A.getD i (Array.mkEmpty 0)).getD k 0.0 * (B.getD k (Array.mkEmpty 0)).getD j 0.0
-      row := row.push sum
-    result := result.push row
-  result
+  Id.run do
+    let mut result : Array (Array Float) := Array.mkEmpty m
+    for i in List.range m do
+      let mut row : Array Float := Array.mkEmpty p
+      for j in List.range p do
+        let mut sum : Float := 0.0
+        for k in List.range n do
+          let rowA := A.getD i #[]
+          let rowB := B.getD k #[]
+          let aVal : Float := rowA.getD k 0.0
+          let bVal : Float := rowB.getD j 0.0
+          sum := sum + aVal * bVal
+        row := row.push sum
+      result := result.push row
+    return result
 
 /--
 Helper: Transpose a matrix.
@@ -145,13 +153,16 @@ Helper: Transpose a matrix.
 def transpose (M : Array (Array Float)) : Array (Array Float) :=
   let m := M.size
   let n := if m > 0 then (M[0]!).size else 0
-  let mutable res := Array.mkEmpty n
-  for j in List.range n do
-    let mutable row := Array.mkEmpty m
-    for i in List.range m do
-      row := row.push (M.getD i (Array.mkEmpty 0)).getD j 0.0
-    res := res.push row
-  res
+  Id.run do
+    let mut res : Array (Array Float) := Array.mkEmpty n
+    for j in List.range n do
+      let mut row : Array Float := Array.mkEmpty m
+      for i in List.range m do
+        let mRow := M.getD i #[]
+        let val : Float := mRow.getD j 0.0
+        row := row.push val
+      res := res.push row
+    return res
 
 /--
 Helper: Compute the softmax of a vector.
@@ -164,7 +175,7 @@ def softmax (v : Array Float) : Array Float :=
 /--
 Helper: Layer normalization
 --/
-def layerNorm (x : Array Float) (weight : Array Float) (bias : Array Float) : Array Float :=
+def layerNorm (x : Array Float) (weight : Array Float) (_bias : Array Float) : Array Float :=
   let mean := x.foldl (· + ·) 0.0 / Float.ofNat x.size
   let variance := x.foldl (λ acc xi => acc + (xi - mean) * (xi - mean)) 0.0 / Float.ofNat x.size
   let std := Float.sqrt (variance + 1e-5)  -- Add epsilon for numerical stability
@@ -177,15 +188,18 @@ Helper: Add positional encoding to input embeddings
 def addPositionalEncoding (x : Array (Array Float)) : Array (Array Float) :=
   let seqLen := x.size
   let dModel := if seqLen > 0 then x[0]!.size else 0
-  let mutable result := Array.mkEmpty seqLen
-  for pos in List.range seqLen do
-    let mutable row := Array.mkEmpty dModel
-    for i in List.range dModel do
-      let angle := Float.ofNat pos / Float.pow 10000.0 (Float.ofNat i / Float.ofNat dModel)
-      let pe := if i % 2 == 0 then Float.sin angle else Float.cos angle
-      row := row.push (x.getD pos (Array.mkEmpty 0)).getD i 0.0 + pe)
-    result := result.push row
-  result
+  Id.run do
+    let mut result : Array (Array Float) := Array.mkEmpty seqLen
+    for pos in List.range seqLen do
+      let mut row : Array Float := Array.mkEmpty dModel
+      for i in List.range dModel do
+        let angle := Float.ofNat pos / Float.pow 10000.0 (Float.ofNat i / Float.ofNat dModel)
+        let pe := if i % 2 == 0 then Float.sin angle else Float.cos angle
+        let xRow := x.getD pos #[]
+        let xVal : Float := xRow.getD i 0.0
+        row := row.push (xVal + pe)
+      result := result.push row
+    return result
 
 /--
 Structure for a single attention head
@@ -256,16 +270,16 @@ Compute multi-head attention
 def multiHeadAttention (heads : Array AttentionHead) (x : Array (Array Float)) : Array (Array Float) :=
   let headOutputs := heads.map (λ head => computeAttention head x)
   -- Concatenate head outputs (simplified - assumes all heads have same output dimension)
-  headOutputs.foldl (λ acc headOut => acc) headOutputs[0]!
+  headOutputs.foldl (λ acc _headOut => acc) headOutputs[0]!
 
 /--
 Apply a single transformer layer
 --/
 def applyTransformerLayer
-  (layerIdx : Nat)
+  (_layerIdx : Nat)
   (heads : Array AttentionHead)
   (ln1 ln2 : Array Float × Array Float)
-  (ff1 ff2 : Array (Array Float) × Array Float)
+  (ff1 _ff2 : Array (Array Float) × Array Float)
   (x : Array (Array Float)) : Array (Array Float) :=
 
   -- Self-attention with residual connection and layer norm
@@ -292,17 +306,18 @@ def evalTransformer (tr : Transformer) (tokenIds : Array Nat) : Array Float :=
   let posEmbs := addPositionalEncoding tokenEmbs
 
   -- Apply transformer layers
-  let mutable hidden := posEmbs
-  for layerIdx in List.range tr.numLayers do
-    let heads := tr.attentionHeads.getD layerIdx (Array.mkEmpty 0)
-    let ln1 := tr.layerNorms1.getD layerIdx (Array.mkEmpty 0, Array.mkEmpty 0)
-    let ln2 := tr.layerNorms2.getD layerIdx (Array.mkEmpty 0, Array.mkEmpty 0)
-    let ff1 := tr.ffWeights1.getD layerIdx (Array.mkEmpty 0, Array.mkEmpty 0)
-    let ff2 := tr.ffWeights2.getD layerIdx (Array.mkEmpty 0, Array.mkEmpty 0)
-    hidden := applyTransformerLayer layerIdx heads ln1 ln2 ff1 ff2 hidden
+  Id.run do
+    let mut hidden := posEmbs
+    for layerIdx in List.range tr.numLayers do
+      let heads := tr.attentionHeads.getD layerIdx (Array.mkEmpty 0)
+      let ln1 := tr.layerNorms1.getD layerIdx (Array.mkEmpty 0, Array.mkEmpty 0)
+      let ln2 := tr.layerNorms2.getD layerIdx (Array.mkEmpty 0, Array.mkEmpty 0)
+      let ff1 := tr.ffWeights1.getD layerIdx (Array.mkEmpty 0, Array.mkEmpty 0)
+      let ff2 := tr.ffWeights2.getD layerIdx (Array.mkEmpty 0, Array.mkEmpty 0)
+      hidden := applyTransformerLayer layerIdx heads ln1 ln2 ff1 ff2 hidden
 
-  -- Output projection
-  let finalHidden := hidden.foldl (λ acc row => acc ++ row) #[]
-  evalLinear tr.outputProjection.1 tr.outputProjection.2 finalHidden
+    -- Output projection
+    let finalHidden := hidden.foldl (λ acc row => acc ++ row) #[]
+    return evalLinear tr.outputProjection.1 tr.outputProjection.2 finalHidden
 
 end FormalVerifML

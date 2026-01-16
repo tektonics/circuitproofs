@@ -15,7 +15,7 @@ Compute the L-infinity distance between two vectors.
 --/
 def distLInf (x y : Array Float) : Float :=
   let pairs := Array.zip x y
-  pairs.foldl (fun acc (xi, yi) => Float.max acc (Float.abs (xi - yi))) 0.0
+  pairs.foldl (fun acc (xi, yi) => max acc (Float.abs (xi - yi))) 0.0
 
 /--
 Robust classification property:
@@ -62,9 +62,7 @@ the classifier's output remains unchanged.
 def counterfactual_fairness (Individual : Type) (f : Individual → Nat) (cf : Individual → Individual) : Prop :=
   ∀ ind, f ind = f (cf ind)
 
-/--
-Transformer-specific properties
---/
+-- Transformer-specific properties
 
 /--
 Attention robustness property:
@@ -73,8 +71,13 @@ result in bounded changes to attention weights.
 --/
 def attentionRobust (attention_fn : Array (Array Float) → Array (Array Float)) (ε δ : Float) : Prop :=
   ∀ (x x' : Array (Array Float)),
-  (∀ i, distL2 x[i]! x'[i]! < ε) →
-  ∀ i j, |(attention_fn x)[i]![j]! - (attention_fn x')[i]![j]!| < δ
+  (∀ (i : Nat), distL2 (x[i]!) (x'[i]!) < ε) →
+  ∀ (i : Nat) (j : Nat),
+    let attn_x : Array (Array Float) := attention_fn x
+    let attn_x' : Array (Array Float) := attention_fn x'
+    let row_x : Array Float := attn_x[i]!
+    let row_x' : Array Float := attn_x'[i]!
+    Float.abs (row_x[j]! - row_x'[j]!) < δ
 
 /--
 Sequence invariance property:
@@ -109,9 +112,12 @@ Different attention heads should attend to different aspects of the input.
 def attentionHeadDiversity (heads : Array (Array (Array Float) → Array (Array Float))) : Prop :=
   ∀ (i j : Nat) (x : Array (Array Float)),
   i ≠ j → i < heads.size → j < heads.size →
-  let attn_i := heads[i]! x
-  let attn_j := heads[j]! x
-  ∃ k l, |attn_i[k]![l]! - attn_j[k]![l]!| > 0.1
+  let attn_i : Array (Array Float) := heads[i]! x
+  let attn_j : Array (Array Float) := heads[j]! x
+  ∃ (k : Nat) (l : Nat),
+    let row_i : Array Float := attn_i[k]!
+    let row_j : Array Float := attn_j[k]!
+    Float.abs (row_i[l]! - row_j[l]!) > 0.1
 
 /--
 Gradient-based interpretability:
@@ -129,8 +135,8 @@ All attention heads should treat different demographic groups fairly.
 def attentionFairness (attention_fn : Array (Array Float) → Array (Array Float))
   (demographic_feature : Nat) : Prop :=
   ∀ (x : Array (Array Float)) (group1 group2 : Nat),
-  let x1 := x.modify demographic_feature (λ _ => Float.ofNat group1)
-  let x2 := x.modify demographic_feature (λ _ => Float.ofNat group2)
+  let x1 := x.modify demographic_feature (λ _ => Array.singleton (Float.ofNat group1))
+  let x2 := x.modify demographic_feature (λ _ => Array.singleton (Float.ofNat group2))
   let attn1 := attention_fn x1
   let attn2 := attention_fn x2
   distL2 (attn1.foldl (λ acc row => acc ++ row) #[])
@@ -140,7 +146,7 @@ def attentionFairness (attention_fn : Array (Array Float) → Array (Array Float
 Memory efficiency property:
 The attention mechanism should not consume excessive memory for long sequences.
 --/
-def memoryEfficient (attention_fn : Array (Array Float) → Array (Array Float)) : Prop :=
+def memoryEfficient (_attention_fn : Array (Array Float) → Array (Array Float)) : Prop :=
   ∀ (x : Array (Array Float)),
   let seq_len := x.size
   let d_model := if seq_len > 0 then x[0]!.size else 0
@@ -157,6 +163,6 @@ def tokenImportanceConsistency (attention_fn : Array (Array Float) → Array (Ar
   let attn2 := attention_fn x2
   let importance1 := attn1.foldl (λ acc row => acc + row[important_pos]!) 0.0
   let importance2 := attn2.foldl (λ acc row => acc + row[important_pos]!) 0.0
-  |importance1 - importance2| < 0.5
+  Float.abs (importance1 - importance2) < 0.5
 
 end FormalVerifML
