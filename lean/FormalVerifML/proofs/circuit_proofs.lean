@@ -41,7 +41,7 @@ This is a key property for safety-critical applications.
 theorem circuit_robustness_example (circuit : Circuit) (δ ε : Float) :
   (∀ component ∈ circuit.components,
     ∀ edge ∈ component.edges,
-    |edge.weight| ≤ 1.0) →
+    Float.abs edge.weight ≤ 1.0) →
   δ = 0.01 →
   ε = 0.05 →
   circuitRobust circuit δ ε := by
@@ -107,7 +107,7 @@ def computeCircuitLipschitz (circuit : Circuit) : Float :=
     -- For linear layer, Lipschitz constant is the spectral norm
     -- Approximated by the sum of absolute weights
     let componentLipschitz := component.edges.foldl (fun sum edge =>
-      sum + |edge.weight|
+      sum + Float.abs edge.weight
     ) 0.0
     acc * (if componentLipschitz > 1.0 then componentLipschitz else 1.0)
   ) 1.0

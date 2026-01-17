@@ -5,7 +5,7 @@ import FormalVerifML.base.vision_models
 namespace FormalVerifML
 
 -- Provide Inhabited instance for SMTResult if not already defined
-instance : Inhabited SMTResult := ⟨SMTResult.unknown⟩
+instance : Inhabited SMTResult := ⟨SMTResult.unknown "Default"⟩
 
 /--
 Distributed verification configuration.
@@ -80,14 +80,29 @@ def distributeTasks
     distribution := distribution.push []
 
   -- Distribute tasks using round-robin with priority consideration
-  let sortedTasks := tasks.sortBy (λ t1 t2 => t1.priority > t2.priority)
+  let sortedTasks := (tasks.toArray.qsort (fun a b => a.priority > b.priority)).toList
 
-  for (task, idx) in sortedTasks.toArray.zipWithIndex do
+  let sortedArray := sortedTasks.toArray
+  for idx in List.range sortedArray.size do
+    let task := sortedArray.getD idx default
     let nodeIdx := idx % numNodes
     let currentTasks := distribution.getD nodeIdx []
     distribution := distribution.set nodeIdx (currentTasks ++ [task])
 
   return distribution
+
+/--
+Split a complex SMT formula into sub-formulas.
+--/
+def splitFormula (formula : SMTFormula) (numParts : Nat) : Array SMTFormula := Id.run do
+  -- Simplified formula splitting - in practice, this would be more sophisticated
+  let mut parts := Array.mkEmpty numParts
+
+  -- For now, just replicate the formula (placeholder implementation)
+  for _i in List.range numParts do
+    parts := parts.push formula
+
+  return parts
 
 /--
 Shard a large verification problem across multiple nodes.
@@ -105,19 +120,6 @@ def shardVerificationProblem
     for _i in List.range config.numNodes do
       shards := shards.push formula
     return shards
-
-/--
-Split a complex SMT formula into sub-formulas.
---/
-def splitFormula (formula : SMTFormula) (numParts : Nat) : Array SMTFormula := Id.run do
-  -- Simplified formula splitting - in practice, this would be more sophisticated
-  let mut parts := Array.mkEmpty numParts
-
-  -- For now, just replicate the formula (placeholder implementation)
-  for _i in List.range numParts do
-    parts := parts.push formula
-
-  return parts
 
 /--
 Execute verification task on a single node.
@@ -199,7 +201,8 @@ def executeDistributedVerification
   let taskDistribution := distributeTasks tasks config
 
   -- Execute tasks on each node
-  for (nodeIdx, nodeTasks) in taskDistribution.toList.enum do
+  for nodeIdx in List.range taskDistribution.size do
+    let nodeTasks := taskDistribution.getD nodeIdx []
     let nodeId := s!"node_{nodeIdx}"
 
     for task in nodeTasks do
@@ -252,7 +255,7 @@ def balanceLoad
       distribution := distribution.push []
 
     -- Sort tasks by priority (highest first)
-    let sortedTasks := tasks.sortBy (λ t1 t2 => t1.priority > t2.priority)
+    let sortedTasks := (tasks.toArray.qsort (fun a b => a.priority > b.priority)).toList
 
     -- Assign tasks to nodes with available capacity
     for task in sortedTasks do
@@ -260,7 +263,8 @@ def balanceLoad
       let mut minLoad := 1000000  -- Use large number instead of Nat.inf
 
       -- Find node with minimum current load
-      for (nodeIdx, nodeTasks) in distribution.toList.enum do
+      for nodeIdx in List.range distribution.size do
+        let nodeTasks := distribution.getD nodeIdx []
         let currentLoad := nodeTasks.length
         if currentLoad < minLoad ∧ currentLoad < nodeCapacities.getD nodeIdx 0 then
           minLoad := currentLoad
