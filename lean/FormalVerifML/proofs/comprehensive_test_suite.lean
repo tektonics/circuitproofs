@@ -4,7 +4,11 @@ import FormalVerifML.base.memory_optimized_models
 import FormalVerifML.base.smt_integration
 import FormalVerifML.generated.sample_transformer_model
 
+open scoped Classical
+
 namespace FormalVerifML
+
+noncomputable section
 
 /--
 Comprehensive test suite for transformer verification properties.
@@ -389,5 +393,7 @@ def defaultTestConfig : TestConfig := {
   enablePropertyTests := true,
   enableMemoryTests := true
 }
+
+end
 
 end FormalVerifML

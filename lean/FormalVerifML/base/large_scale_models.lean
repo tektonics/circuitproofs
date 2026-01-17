@@ -48,9 +48,9 @@ def advancedSparseAttentionPattern
   (seqLen : Nat)
   (chunkSize : Nat)
   (globalAttentionSize : Nat) : Array (Array Bool) :=
-  let mutable pattern := Array.mkEmpty seqLen
+  let mut pattern := Array.mkEmpty seqLen
   for i in List.range seqLen do
-    let mutable row := Array.mkEmpty seqLen
+    let mut row := Array.mkEmpty seqLen
     for j in List.range seqLen do
       -- Local attention within chunks
       let chunk_i := i / chunkSize
@@ -94,7 +94,7 @@ def computeAdvancedSparseAttention
   -- Apply sparse attention pattern
   let maskedScores := scores.zipWith (λ row i =>
     row.zipWith (λ score j =>
-      if pattern.getD i (Array.mkEmpty 0).getD j false then score else (-1.0 / 0.0)
+      if (pattern.getD i (Array.mkEmpty 0)).getD j false then score else (-1.0 / 0.0)
     ) (List.range row.size)
   ) (List.range scores.size)
 
@@ -161,7 +161,7 @@ def evalLargeScaleTransformer (tr : LargeScaleTransformer) (tokenIds : Array Nat
 
     let pattern := advancedSparseAttentionPattern tr.maxSeqLen tr.chunkSize 8
 
-    let mutable hidden := posEmbs
+    let mut hidden := posEmbs
     for layerIdx in List.range tr.numLayers do
       let deviceId := layerIdx % tr.numGPUs  -- Distribute layers across GPUs
       let heads := tr.attentionHeads.getD layerIdx (Array.mkEmpty 0)
@@ -183,7 +183,7 @@ def evalLargeScaleTransformer (tr : LargeScaleTransformer) (tokenIds : Array Nat
 
     let pattern := advancedSparseAttentionPattern tr.maxSeqLen tr.chunkSize 8
 
-    let mutable hidden := posEmbs
+    let mut hidden := posEmbs
     for layerIdx in List.range tr.numLayers do
       let heads := tr.attentionHeads.getD layerIdx (Array.mkEmpty 0)
       let ln1 := tr.layerNorms1.getD layerIdx (Array.mkEmpty 0, Array.mkEmpty 0)

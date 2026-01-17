@@ -70,7 +70,7 @@ def distributeTasks
   (tasks : List VerificationTask)
   (config : DistributedConfig) : Array (List VerificationTask) :=
   let numNodes := config.numNodes
-  let mutable distribution := Array.mkEmpty numNodes
+  let mut distribution := Array.mkEmpty numNodes
 
   -- Initialize empty task lists for each node
   for i in List.range numNodes do
@@ -98,7 +98,7 @@ def shardVerificationProblem
     subFormulas
   else
     -- Replicate formula across all nodes
-    let mutable shards := Array.mkEmpty config.numNodes
+    let mut shards := Array.mkEmpty config.numNodes
     for i in List.range config.numNodes do
       shards := shards.push formula
     shards
@@ -108,7 +108,7 @@ Split a complex SMT formula into sub-formulas.
 --/
 def splitFormula (formula : SMTFormula) (numParts : Nat) : Array SMTFormula :=
   -- Simplified formula splitting - in practice, this would be more sophisticated
-  let mutable parts := Array.mkEmpty numParts
+  let mut parts := Array.mkEmpty numParts
 
   -- For now, just replicate the formula (placeholder implementation)
   for i in List.range numParts do
@@ -238,7 +238,7 @@ def balanceLoad
   (config : DistributedConfig) : Array (List VerificationTask) :=
   if config.enableLoadBalancing then
     -- Simple load balancing based on task priority and node capacity
-    let mutable distribution := Array.mkEmpty nodeCapacities.size
+    let mut distribution := Array.mkEmpty nodeCapacities.size
 
     -- Initialize empty task lists
     for i in List.range nodeCapacities.size do

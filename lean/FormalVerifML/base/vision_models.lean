@@ -50,11 +50,11 @@ def extractPatches
   let numPatchesW := width / patchSize
   let patchDim := patchSize * patchSize * channels
 
-  let mutable patches := Array.mkEmpty (numPatchesH * numPatchesW)
+  let mut patches := Array.mkEmpty (numPatchesH * numPatchesW)
 
   for i in List.range numPatchesH do
     for j in List.range numPatchesW do
-      let mutable patch := Array.mkEmpty patchDim
+      let mut patch := Array.mkEmpty patchDim
       let patchIdx := 0
 
       for pi in List.range patchSize do
@@ -64,7 +64,7 @@ def extractPatches
 
           if imgI < height ∧ imgJ < width then
             for c in List.range channels do
-              patch := patch.push (image.getD imgI (Array.mkEmpty 0).getD imgJ (Array.mkEmpty 0).getD c 0.0)
+              patch := patch.push (((image.getD imgI (Array.mkEmpty 0)).getD imgJ (Array.mkEmpty 0)).getD c 0.0)
 
       patches := patches.push patch
 
@@ -106,7 +106,7 @@ def evalVisionTransformer (vit : VisionTransformer) (image : Array (Array (Array
     sequence
 
   -- Apply transformer layers
-  let mutable hidden := sequence
+  let mut hidden := sequence
   for layerIdx in List.range vit.numLayers do
     let heads := vit.attentionHeads.getD layerIdx (Array.mkEmpty 0)
     let ln1 := vit.layerNorms1.getD layerIdx (Array.mkEmpty 0, Array.mkEmpty 0)
@@ -204,7 +204,7 @@ def evalSwinTransformer (swin : SwinTransformer) (image : Array (Array (Array Fl
   let sequence := embeddedPatches.zipWith (λ emb pos => emb.zipWith (· + ·) pos) swin.positionalEmbeddings
 
   -- Apply transformer layers with window attention
-  let mutable hidden := sequence
+  let mut hidden := sequence
   for layerIdx in List.range (swin.numLayers.foldl (· + ·) 0) do
     let heads := swin.attentionHeads.getD layerIdx (Array.mkEmpty 0)
     let ln1 := swin.layerNorms1.getD layerIdx (Array.mkEmpty 0, Array.mkEmpty 0)
@@ -290,7 +290,7 @@ def evalMultiModalTransformer
   let sequence := combinedSequence.zipWith (λ emb pos => emb.zipWith (· + ·) pos) mmt.positionalEmbeddings
 
   -- Apply transformer layers
-  let mutable hidden := sequence
+  let mut hidden := sequence
   for layerIdx in List.range mmt.numLayers do
     let heads := mmt.attentionHeads.getD layerIdx (Array.mkEmpty 0)
     let ln1 := mmt.layerNorms1.getD layerIdx (Array.mkEmpty 0, Array.mkEmpty 0)
