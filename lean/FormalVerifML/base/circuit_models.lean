@@ -88,8 +88,10 @@ def applySparseLinear (edges : List CircuitEdge) (bias : Array Float)
     if h : edge.targetIdx < acc.size then
       let inputVal := input.getD edge.sourceIdx 0.0
       let contribution := edge.weight * inputVal
-      let currentVal := acc.get ⟨edge.targetIdx, h⟩
-      acc.set ⟨edge.targetIdx, h⟩ (currentVal + contribution)
+      -- Use bracket syntax with 'h for safe access
+      let currentVal := acc[edge.targetIdx]'h
+      -- Pass the index, value, and proof 'h' separately to set
+      acc.set edge.targetIdx (currentVal + contribution) h
     else
       acc
   ) output
