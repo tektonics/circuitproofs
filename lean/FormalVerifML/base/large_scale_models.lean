@@ -62,7 +62,7 @@ def advancedSparseAttentionPattern
 
       -- Sliding window attention (Longformer-style)
       let windowSize := chunkSize * 2
-      let isInWindow := Nat.abs (i - j) ≤ windowSize
+      let isInWindow := Int.natAbs ((i : Int) - (j : Int)) ≤ windowSize
 
       row := row.push (isLocal || isGlobal || isInWindow)
     pattern := pattern.push row

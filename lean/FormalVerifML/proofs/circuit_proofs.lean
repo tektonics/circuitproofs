@@ -7,6 +7,7 @@ using the Certified Proof-Carrying Circuits pipeline.
 
 import FormalVerifML.base.circuit_models
 import FormalVerifML.base.definitions
+import FormalVerifML.base.ml_properties
 
 namespace FormalVerifML
 
@@ -15,7 +16,7 @@ namespace FormalVerifML
 /-- Proof that the simple linear circuit is well-formed -/
 theorem simpleLinearCircuit_wellformed :
   circuitWellFormed simpleLinearCircuit = true := by
-  rfl
+  native_decide
 
 /-- Proof that evaluating the circuit on specific input produces expected output -/
 theorem simpleLinearCircuit_eval_example :
@@ -23,7 +24,7 @@ theorem simpleLinearCircuit_eval_example :
   let output := evalCircuit simpleLinearCircuit input
   -- output should be approximately 0.5 * 1.0 + (-0.3) * 2.0 + 0.1 = 0.5 - 0.6 + 0.1 = 0.0
   output.size = 1 := by
-  rfl
+  native_decide
 
 /-- The simple circuit has positive sparsity -/
 theorem simpleLinearCircuit_sparse :
@@ -203,7 +204,7 @@ def circuitDemographicParity
   let x2 := x.set! sensitiveFeatureIdx val2
   let out1 := evalCircuit circuit x1
   let out2 := evalCircuit circuit x2
-  ‖out1 - out2‖ < tolerance
+  distL2 out1 out2 < tolerance
 
 /-! ## Interpretability Properties -/
 
