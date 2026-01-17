@@ -47,7 +47,7 @@ Implements Longformer-style sparse attention with local and global attention.
 def advancedSparseAttentionPattern
   (seqLen : Nat)
   (chunkSize : Nat)
-  (globalAttentionSize : Nat) : Array (Array Bool) :=
+  (globalAttentionSize : Nat) : Array (Array Bool) := Id.run do
   let mut pattern := Array.mkEmpty seqLen
   for i in List.range seqLen do
     let mut row := Array.mkEmpty seqLen
@@ -66,7 +66,7 @@ def advancedSparseAttentionPattern
 
       row := row.push (isLocal || isGlobal || isInWindow)
     pattern := pattern.push row
-  pattern
+  return pattern
 
 /--
 Memory-efficient attention with advanced optimizations.
@@ -95,8 +95,8 @@ def computeAdvancedSparseAttention
   let maskedScores := scores.zipWith (λ row i =>
     row.zipWith (λ score j =>
       if (pattern.getD i (Array.mkEmpty 0)).getD j false then score else (-1.0 / 0.0)
-    ) (List.range row.size)
-  ) (List.range scores.size)
+    ) (List.range row.size).toArray
+  ) (List.range scores.size).toArray
 
   -- Scale by sqrt(d_k)
   let d_k := Float.ofNat (if scores.size > 0 then scores[0]!.size else 0)
@@ -149,7 +149,7 @@ def pipelineParallelLayer
 /--
 Large-scale transformer evaluation with distributed processing.
 --/
-def evalLargeScaleTransformer (tr : LargeScaleTransformer) (tokenIds : Array Nat) : Array Float :=
+def evalLargeScaleTransformer (tr : LargeScaleTransformer) (tokenIds : Array Nat) : Array Float := Id.run do
   -- Check memory constraints
   let estimatedMemory := tr.vocabSize * tr.dModel * 4  -- Rough estimate in bytes
   let memoryGB := estimatedMemory / 1024 / 1024 / 1024
@@ -175,7 +175,7 @@ def evalLargeScaleTransformer (tr : LargeScaleTransformer) (tokenIds : Array Nat
         hidden tr.chunkSize
 
     let finalHidden := hidden.foldl (λ acc row => acc ++ row) #[]
-    evalLinear tr.outputProjection.1 tr.outputProjection.2 finalHidden
+    return evalLinear tr.outputProjection.1 tr.outputProjection.2 finalHidden
   else
     -- Use regular processing for smaller models
     let tokenEmbs := tokenIds.map (λ id => tr.tokenEmbeddings.getD id (Array.mkEmpty 0))
@@ -193,7 +193,7 @@ def evalLargeScaleTransformer (tr : LargeScaleTransformer) (tokenIds : Array Nat
       hidden := pipelineParallelLayer layerIdx heads ln1 ln2 ff1 ff2 hidden pattern tr.useMixedPrecision 0
 
     let finalHidden := hidden.foldl (λ acc row => acc ++ row) #[]
-    evalLinear tr.outputProjection.1 tr.outputProjection.2 finalHidden
+    return evalLinear tr.outputProjection.1 tr.outputProjection.2 finalHidden
 
 /--
 Convert memory-optimized transformer to large-scale version.

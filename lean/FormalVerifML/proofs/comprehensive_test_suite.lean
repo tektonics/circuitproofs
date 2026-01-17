@@ -10,14 +10,10 @@ namespace FormalVerifML
 
 noncomputable section
 
-/--
-Comprehensive test suite for transformer verification properties.
-This module provides systematic testing of all transformer properties.
---/
+/- Comprehensive test suite for transformer verification properties.
+   This module provides systematic testing of all transformer properties. -/
 
-/--
-Test configuration for comprehensive verification.
---/
+/-- Test configuration for comprehensive verification. -/
 structure TestConfig where
   -- Model parameters
   testModel : Transformer
@@ -340,7 +336,7 @@ def generateTestReport (results : List TestResult) : String :=
   let totalTime := results.foldl (λ acc r => acc + r.executionTime) 0.0
 
   let report := s!"COMPREHENSIVE TEST REPORT\n"
-    ++ s!"{'='*50}\n"
+    ++ s!"{String.mk (List.replicate 50 '=')}\n"
     ++ s!"Total Tests: {totalTests}\n"
     ++ s!"Passed: {passedTests}\n"
     ++ s!"Failed: {failedTests}\n"
@@ -349,7 +345,7 @@ def generateTestReport (results : List TestResult) : String :=
     ++ s!"Total Execution Time: {totalTime:.3f}s\n"
     ++ s!"Success Rate: {Float.ofNat passedTests / Float.ofNat totalTests * 100.0:.1f}%\n\n"
     ++ s!"DETAILED RESULTS:\n"
-    ++ s!"{'='*50}\n"
+    ++ s!"{String.mk (List.replicate 50 '=')}\n"
 
   let detailedResults := results.map (λ r =>
     s!"{r.propertyName}: {r.status} ({r.executionTime:.3f}s)\n"

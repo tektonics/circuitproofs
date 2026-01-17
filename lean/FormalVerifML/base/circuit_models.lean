@@ -180,7 +180,7 @@ def circuitSparsity (circuit : Circuit) : Float :=
   let totalPossibleEdges := circuit.components.foldl (fun acc component =>
     acc + component.inputDim * component.outputDim
   ) 0
-  if totalPossibleEdges > 0 then
+  if totalPossibleEdges > (0 : Nat) then
     1.0 - (totalEdges.toFloat / totalPossibleEdges.toFloat)
   else
     0.0
