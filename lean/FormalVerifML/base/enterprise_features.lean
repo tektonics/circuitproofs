@@ -16,7 +16,7 @@ structure User where
   createdAt : Nat          -- Account creation timestamp
   lastLogin : Nat          -- Last login timestamp
 
-  deriving Inhabited
+  deriving Inhabited, Repr
 
 /--
 Audit log entry for tracking system activities.
@@ -32,7 +32,7 @@ structure AuditLogEntry where
   userAgent : String       -- User agent string
   success : Bool           -- Whether the action was successful
 
-  deriving Inhabited
+  deriving Inhabited, Repr
 
 /--
 Session management for multi-user support.
@@ -46,7 +46,7 @@ structure UserSession where
   isActive : Bool         -- Whether session is active
   lastActivity : Nat      -- Last activity timestamp
 
-  deriving Inhabited
+  deriving Inhabited, Repr
 
 /--
 Project management for organizing verification tasks.
@@ -62,7 +62,7 @@ structure Project where
   isPublic : Bool         -- Whether project is public
   status : String         -- Project status (active, archived, deleted)
 
-  deriving Inhabited
+  deriving Inhabited, Repr
 
 /--
 Verification job with enterprise features.
@@ -83,7 +83,7 @@ structure VerificationJob where
   executionTime : Float   -- Total execution time
   memoryUsage : Nat       -- Memory usage in MB
 
-  deriving Inhabited
+  deriving Inhabited, Repr
 
 /--
 Enterprise configuration for multi-user deployment.
@@ -113,7 +113,7 @@ structure EnterpriseConfig where
   jobTimeout : Nat         -- Job timeout in seconds
   enableCaching : Bool     -- Whether to enable result caching
 
-  deriving Inhabited
+  deriving Inhabited, Repr
 
 /--
 User authentication and session management.
@@ -313,7 +313,7 @@ def failJob (job : VerificationJob) (error : String) : IO VerificationJob := do
 /--
 Rate limiting and security features.
 --/
-def checkRateLimit (userId : String) (requests : List Nat) (config : EnterpriseConfig) : IO Bool := do
+def checkRateLimit (_userId : String) (requests : List Nat) (config : EnterpriseConfig) : IO Bool := do
   if config.enableRateLimiting then
     let now ← IO.monoMsNow
     let oneMinuteAgo := now - 60000  -- 60 seconds in milliseconds
@@ -331,7 +331,7 @@ def encryptData (data : String) (config : EnterpriseConfig) : String :=
 
 def decryptData (encryptedData : String) (config : EnterpriseConfig) : String :=
   if config.enableEncryption ∧ encryptedData.startsWith "encrypted_" then
-    encryptedData.drop 10  -- Remove "encrypted_" prefix
+    String.ofList (encryptedData.drop 10).copy.toList
   else
     encryptedData
 
@@ -410,32 +410,32 @@ def generateEnterpriseReport
   (auditLogs : List AuditLogEntry)
   (config : EnterpriseConfig) : String :=
   let totalJobs := jobs.length
-  let completedJobs := jobs.filter (λ j => j.status == "completed").length
-  let failedJobs := jobs.filter (λ j => j.status == "failed").length
-  let pendingJobs := jobs.filter (λ j => j.status == "pending").length
+  let completedJobs := jobs.filter (fun (j : VerificationJob) => j.status == "completed") |>.length
+  let failedJobs := jobs.filter (fun (j : VerificationJob) => j.status == "failed") |>.length
+  let pendingJobs := jobs.filter (fun (j : VerificationJob) => j.status == "pending") |>.length
 
-  let totalExecutionTime := jobs.foldl (λ acc j => acc + j.executionTime) 0.0
-  let totalMemoryUsage := jobs.foldl (λ acc j => acc + j.memoryUsage) 0
+  let totalExecutionTime := jobs.foldl (fun acc (j : VerificationJob) => acc + j.executionTime) 0.0
+  let totalMemoryUsage := jobs.foldl (fun acc (j : VerificationJob) => acc + j.memoryUsage) 0
 
   let totalAuditLogs := auditLogs.length
-  let successfulActions := auditLogs.filter (λ log => log.success).length
-  let failedActions := auditLogs.filter (λ log => !log.success).length
+  let successfulActions := auditLogs.filter (fun (log : AuditLogEntry) => log.success) |>.length
+  let failedActions := auditLogs.filter (fun (log : AuditLogEntry) => !log.success) |>.length
 
   let report := s!"ENTERPRISE VERIFICATION REPORT\n"
-    ++ s!"{'='*60}\n"
+    ++ s!"{String.ofList (List.replicate 60 '=')}\n"
     ++ s!"JOBS SUMMARY:\n"
     ++ s!"  Total Jobs: {totalJobs}\n"
     ++ s!"  Completed: {completedJobs}\n"
     ++ s!"  Failed: {failedJobs}\n"
     ++ s!"  Pending: {pendingJobs}\n"
-    ++ s!"  Success Rate: {Float.ofNat completedJobs / Float.ofNat totalJobs * 100.0:.1f}%\n"
-    ++ s!"  Total Execution Time: {totalExecutionTime:.3f}s\n"
+    ++ s!"  Success Rate: {Float.ofNat completedJobs / Float.ofNat totalJobs * 100.0}%\n"
+    ++ s!"  Total Execution Time: {totalExecutionTime}s\n"
     ++ s!"  Total Memory Usage: {totalMemoryUsage}MB\n\n"
     ++ s!"AUDIT SUMMARY:\n"
     ++ s!"  Total Log Entries: {totalAuditLogs}\n"
     ++ s!"  Successful Actions: {successfulActions}\n"
     ++ s!"  Failed Actions: {failedActions}\n"
-    ++ s!"  Action Success Rate: {Float.ofNat successfulActions / Float.ofNat totalAuditLogs * 100.0:.1f}%\n\n"
+    ++ s!"  Action Success Rate: {Float.ofNat successfulActions / Float.ofNat totalAuditLogs * 100.0}%\n\n"
     ++ s!"CONFIGURATION:\n"
     ++ s!"  Authentication: {if config.enableAuthentication then "Enabled" else "Disabled"}\n"
     ++ s!"  Audit Logging: {if config.enableAuditLogging then "Enabled" else "Disabled"}\n"
