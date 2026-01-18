@@ -7,16 +7,6 @@ namespace FormalVerifML
 -- Provide Inhabited instance for SMTResult if not already defined
 instance : Inhabited SMTResult := ⟨SMTResult.unknown "Default"⟩
 
--- Provide BEq instance for SMTResult
-instance : BEq SMTResult where
-  beq a b := match a, b with
-    | SMTResult.sat m1, SMTResult.sat m2 => m1 == m2
-    | SMTResult.unsat c1, SMTResult.unsat c2 => c1 == c2
-    | SMTResult.timeout, SMTResult.timeout => true
-    | SMTResult.unknown r1, SMTResult.unknown r2 => r1 == r2
-    | SMTResult.error e1, SMTResult.error e2 => e1 == e2
-    | _, _ => false
-
 /--
 Distributed verification configuration.
 --/
@@ -61,7 +51,7 @@ structure NodeResult where
   executionTime : Float     -- Execution time in seconds
   memoryUsage : Nat         -- Memory usage in MB
 
-  deriving Inhabited
+  deriving Inhabited, Repr
 
 /--
 Distributed verification result.
@@ -74,7 +64,7 @@ structure DistributedResult where
   totalExecutionTime : Float -- Total execution time
   totalMemoryUsage : Nat    -- Total memory usage
 
-  deriving Inhabited
+  deriving Inhabited, Repr
 
 /--
 Distribute verification tasks across nodes.
@@ -93,7 +83,10 @@ def distributeTasks
     let task := sortedArray.getD idx default
     let nodeIdx := idx % numNodes
     let currentTasks := distribution.getD nodeIdx []
-    distribution := distribution.set nodeIdx (currentTasks ++ [task])
+    if h : nodeIdx < distribution.size then
+      distribution := distribution.set nodeIdx (currentTasks ++ [task]) h
+    else
+      pure ()  -- No-op if out of bounds (shouldn't happen with modulo)
 
   return distribution
 
@@ -171,10 +164,10 @@ Aggregate results from multiple nodes.
 --/
 def aggregateResults (results : List NodeResult) : SMTResult :=
   -- Count different result types
-  let satCount := results.filter (fun (r : NodeResult) => match r.result with | SMTResult.sat _ => true | _ => false).length
-  let unsatCount := results.filter (fun (r : NodeResult) => match r.result with | SMTResult.unsat _ => true | _ => false).length
-  let timeoutCount := results.filter (fun (r : NodeResult) => match r.result with | SMTResult.timeout => true | _ => false).length
-  let errorCount := results.filter (fun (r : NodeResult) => match r.result with | SMTResult.error _ => true | _ => false).length
+  let satCount := (results.filter (fun (r : NodeResult) => match r.result with | SMTResult.sat _ => true | _ => false)).length
+  let unsatCount := (results.filter (fun (r : NodeResult) => match r.result with | SMTResult.unsat _ => true | _ => false)).length
+  let timeoutCount := (results.filter (fun (r : NodeResult) => match r.result with | SMTResult.timeout => true | _ => false)).length
+  let errorCount := (results.filter (fun (r : NodeResult) => match r.result with | SMTResult.error _ => true | _ => false)).length
 
   -- Determine overall result based on majority
   if unsatCount > satCount ∧ unsatCount > timeoutCount ∧ unsatCount > errorCount then
@@ -265,7 +258,10 @@ def balanceLoad
 
       -- Assign task to best node
       let currentTasks := distribution.getD bestNode []
-      distribution := distribution.set bestNode (currentTasks ++ [task])
+      if h : bestNode < distribution.size then
+        distribution := distribution.set bestNode (currentTasks ++ [task]) h
+      else
+        pure ()  -- No-op if out of bounds (shouldn't happen)
 
     return distribution
   else
@@ -306,10 +302,10 @@ Generate verification report for distributed results.
 --/
 def generateDistributedReport (results : List DistributedResult) : String :=
   let totalTasks := results.length
-  let verifiedTasks := results.filter (fun (r : DistributedResult) => r.overallStatus == "VERIFIED").length
-  let violatedTasks := results.filter (fun (r : DistributedResult) => r.overallStatus == "VIOLATED").length
-  let timeoutTasks := results.filter (fun (r : DistributedResult) => r.overallStatus == "TIMEOUT").length
-  let errorTasks := results.filter (fun (r : DistributedResult) => r.overallStatus == "ERROR").length
+  let verifiedTasks := (results.filter (fun (r : DistributedResult) => r.overallStatus == "VERIFIED")).length
+  let violatedTasks := (results.filter (fun (r : DistributedResult) => r.overallStatus == "VIOLATED")).length
+  let timeoutTasks := (results.filter (fun (r : DistributedResult) => r.overallStatus == "TIMEOUT")).length
+  let errorTasks := (results.filter (fun (r : DistributedResult) => r.overallStatus == "ERROR")).length
 
   let totalTime := results.foldl (λ acc r => acc + r.totalExecutionTime) 0.0
   let totalMemory := results.foldl (λ acc r => acc + r.totalMemoryUsage) 0

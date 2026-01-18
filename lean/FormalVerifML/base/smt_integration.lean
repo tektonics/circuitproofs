@@ -41,7 +41,7 @@ inductive SMTFormula where
   | implies (left right : SMTFormula) : SMTFormula
   | forall (var : String) (body : SMTFormula) : SMTFormula
   | exists (var : String) (body : SMTFormula) : SMTFormula
-  deriving Repr
+  deriving Repr, BEq
 
 instance : ToString SMTFormula where
   toString f := reprStr f
@@ -55,6 +55,7 @@ inductive SMTResult where
   | unknown (reason : String) : SMTResult
   | timeout : SMTResult
   | error (message : String) : SMTResult
+  deriving Repr, BEq
 
 /--
 Convert Lean Float to SMT string representation.
