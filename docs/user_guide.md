@@ -38,7 +38,7 @@ LeanVerifier is a comprehensive framework for formally verifying machine learnin
 
 ```bash
 # Clone the repository
-git clone https://github.com/tektonics/circuitproofs.git
+git clone https://github.com/the-lono-collective/circuitproofs.git
 cd circuitproofs
 
 # Build and run with Docker
@@ -53,7 +53,7 @@ open http://localhost:5000
 
 ```bash
 # Clone the repository
-git clone https://github.com/tektonics/circuitproofs.git
+git clone https://github.com/the-lono-collective/circuitproofs.git
 cd circuitproofs
 
 # Install Python dependencies
@@ -524,4 +524,4 @@ A: Yes! See the [Contributing Guide](../CONTRIBUTING.md) for details.
 
 ---
 
-**Need more help?** Check our [Documentation](../docs/) or [GitHub Issues](https://github.com/tektonics/circuitproofs/issues).
+**Need more help?** Check our [Documentation](../docs/) or [GitHub Issues](https://github.com/the-lono-collective/circuitproofs/issues).
