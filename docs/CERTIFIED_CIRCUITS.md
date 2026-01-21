@@ -129,7 +129,7 @@ theorem circuit_certification
 
 ```bash
 # Clone repository
-git clone https://github.com/tektonics/circuitproofs.git
+git clone https://github.com/the-lono-collective/circuitproofs.git
 cd circuitproofs
 
 # Install Python dependencies
@@ -421,7 +421,7 @@ If you use this system in your research, please cite:
   title={Certified Proof-Carrying Circuits: Bridging Interpretability and Formal Verification},
   author={tektonics},
   year={2026},
-  url={https://github.com/tektonics/circuitproofs}
+  url={https://github.com/the-lono-collective/circuitproofs}
 }
 ```
 
@@ -448,7 +448,7 @@ MIT License - See [LICENSE](../LICENSE) for details
 
 ## Contact
 
-For questions or issues, please open a [GitHub issue](https://github.com/tektonics/circuitproofs/issues).
+For questions or issues, please open a [GitHub issue](https://github.com/the-lono-collective/circuitproofs/issues).
 
 ---
 

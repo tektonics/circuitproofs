@@ -35,7 +35,7 @@ Before contributing, ensure you have:
    ```
 3. **Add upstream remote**:
    ```bash
-   git remote add upstream https://github.com/tektonics/circuitproofs.git
+   git remote add upstream https://github.com/the-lono-collective/circuitproofs.git
    ```
 4. **Create a feature branch**:
    ```bash
@@ -681,8 +681,8 @@ Contributors are recognized through:
 
 ### Support Channels
 
-- **GitHub Issues**: [Create an issue](https://github.com/tektonics/circuitproofs/issues)
-- **GitHub Discussions**: [Start a discussion](https://github.com/tektonics/circuitproofs/discussions)
+- **GitHub Issues**: [Create an issue](https://github.com/the-lono-collective/circuitproofs/issues)
+- **GitHub Discussions**: [Start a discussion](https://github.com/the-lono-collective/circuitproofs/discussions)
 - **Discord**: Join our community server
 - **Email**: Contact the maintainers directly
 

@@ -194,7 +194,7 @@ sudo sh get-docker.sh
 
 ```bash
 # Clone the repository
-git clone https://github.com/tektonics/circuitproofs.git
+git clone https://github.com/the-lono-collective/circuitproofs.git
 cd circuitproofs
 
 # Create virtual environment
@@ -993,7 +993,7 @@ git clone https://github.com/your-username/circuitproofs.git
 cd circuitproofs
 
 # Add upstream remote
-git remote add upstream https://github.com/tektonics/circuitproofs.git
+git remote add upstream https://github.com/the-lono-collective/circuitproofs.git
 ```
 
 #### 2. **Create Feature Branch**
@@ -1107,10 +1107,10 @@ lake build
 
 #### 2. **Community**
 
-- [GitHub Issues](https://github.com/tektonics/circuitproofs/issues)
-- [GitHub Discussions](https://github.com/tektonics/circuitproofs/discussions)
+- [GitHub Issues](https://github.com/the-lono-collective/circuitproofs/issues)
+- [GitHub Discussions](https://github.com/the-lono-collective/circuitproofs/discussions)
 - [Discord Server](https://discord.gg/formalverifml)
 
 ---
 
-**Ready to contribute?** Start with a [good first issue](https://github.com/tektonics/circuitproofs/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or check our [contributing guidelines](CONTRIBUTING.md).
+**Ready to contribute?** Start with a [good first issue](https://github.com/the-lono-collective/circuitproofs/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or check our [contributing guidelines](CONTRIBUTING.md).

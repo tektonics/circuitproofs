@@ -19,6 +19,7 @@ import FormalVerifML.base.vision_models            -- Vision Transformers
 import FormalVerifML.base.distributed_verification -- Distributed verification
 import FormalVerifML.base.enterprise_features      -- Enterprise features
 import FormalVerifML.base.circuit_models           -- Certified Proof-Carrying Circuits
+import FormalVerifML.base.circuit_equivalence      -- Circuit equivalence for counterfactual testing
 
 -- Auto-generated models:
 import FormalVerifML.generated.example_model          -- original NN model
