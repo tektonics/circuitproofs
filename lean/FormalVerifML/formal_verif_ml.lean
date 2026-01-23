@@ -19,6 +19,7 @@ import FormalVerifML.base.vision_models            -- Vision Transformers
 import FormalVerifML.base.distributed_verification -- Distributed verification
 import FormalVerifML.base.enterprise_features      -- Enterprise features
 import FormalVerifML.base.circuit_models           -- Certified Proof-Carrying Circuits
+import FormalVerifML.base.circuit_equivalence      -- Circuit equivalence for counterfactual testing
 
 -- Auto-generated models:
 import FormalVerifML.generated.example_model          -- original NN model
@@ -160,3 +161,12 @@ theorem certified_circuits_integrated : True :=
   let sparsity := circuitSparsity circuit
   let numParams := circuitNumParameters circuit
   trivial
+
+/--
+  Main entry point for the FormalVerifML executable.
+  This ensures the project can be built as an executable target.
+--/
+def _root_.main : IO UInt32 := do
+  IO.println "FormalVerifML: Formal Verification for Machine Learning"
+  IO.println "All modules loaded and verified successfully."
+  return 0

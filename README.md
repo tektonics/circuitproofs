@@ -1,13 +1,16 @@
-# LeanVerifier: Formal Verification of Machine Learning Models
+# LeanVerifier: Certified Proof-Carrying Circuits for Mechanistic Interpretability
 
+[![CI](https://github.com/the-lono-collective/circuitproofs/actions/workflows/lean_ci.yml/badge.svg)](https://github.com/the-lono-collective/circuitproofs/actions/workflows/lean_ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Lean 4](https://img.shields.io/badge/Lean-4-green.svg)](https://leanprover.github.io/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 
-> **Enterprise-grade formal verification framework for machine learning models with support for large-scale transformers, vision models, distributed verification, and novel Certified Proof-Carrying Circuits.**
+> **Bridge mechanistic interpretability and formal verification**: Extract sparse circuits from neural networks and mathematically prove they satisfy formal specifications.
 
-> 🔬 **Note**: This is an extended fork of [FormalVerifML](https://github.com/fraware/formal_verif_ml) with added **Certified Proof-Carrying Circuits** capabilities that bridge mechanistic interpretability and formal verification.
+> This project addresses a core challenge in AI interpretability: moving from "this circuit *looks* like it computes X" to "this circuit is *proven* to compute X."
+
+**Extended from [FormalVerifML](https://github.com/fraware/formal_verif_ml) with novel Certified Proof-Carrying Circuits capabilities.**
 
 <p align="center">
   <img src=".github/assets/FormalVerifML-RM.jpg" alt="FormalVerifML Logo" width="200"/>
@@ -31,11 +34,31 @@ LeanVerifier is a state-of-the-art framework for formally verifying machine lear
 
 The framework provides comprehensive support for verifying properties such as robustness, fairness, interpretability, and safety across a wide range of model architectures.
 
-### Mission
+### The Problem
 
-To provide **mathematically rigorous verification** of ML models for high-stakes applications in healthcare, finance, autonomous systems, and other critical domains where model reliability is paramount.
+Current mechanistic interpretability methods identify circuits in neural networks but can only say "this circuit correlates with behavior X." This is insufficient for:
+- **Safety-critical applications** requiring mathematical guarantees
+- **Regulatory compliance** demanding provable fairness
+- **Scientific understanding** needing causal, not correlational, explanations
 
-**Novel Contribution**: Bridge mechanistic interpretability and formal verification through certified sparse circuits with provable error bounds.
+### Our Solution
+
+Extract circuits from models and **prove** they match formal specifications:
+
+```
+Model solves task → Extract circuit → Translate to Lean → Prove matches specification
+```
+
+The output is a **mathematical certificate** that the circuit implements the claimed algorithm—not just on test cases, but for all possible inputs.
+
+### MBPP-Lean Benchmark Integration
+
+We integrate the [VERINA benchmark](https://github.com/sunblaze-ucb/verina)'s MBPP-Lean subset (49 programming problems with formal Lean specifications) to:
+- **Validate extraction**: Prove extracted circuits match known specifications
+- **Enable counterfactual testing**: Verify circuits capture semantics, not syntax
+- **Provide ground truth**: Use pre-written specs as the "answer key"
+
+See [`benchmarks/verina/`](benchmarks/verina/) for details.
 
 ### What Makes This Fork Different
 
@@ -133,7 +156,7 @@ circuitproofs/
 
 ```bash
 # Clone the repository
-git clone https://github.com/tektonics/circuitproofs.git
+git clone https://github.com/the-lono-collective/circuitproofs.git
 cd circuitproofs
 
 # Build and run with Docker
@@ -148,7 +171,7 @@ open http://localhost:5000
 
 ```bash
 # Clone the repository
-git clone https://github.com/tektonics/circuitproofs.git
+git clone https://github.com/the-lono-collective/circuitproofs.git
 cd circuitproofs
 
 # Install Python dependencies
@@ -289,7 +312,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ```bash
 # Clone and setup development environment
-git clone https://github.com/tektonics/circuitproofs.git
+git clone https://github.com/the-lono-collective/circuitproofs.git
 cd circuitproofs
 
 # Install development dependencies
@@ -327,6 +350,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 This project extends [FormalVerifML](https://github.com/fraware/formal_verif_ml) with novel **Certified Proof-Carrying Circuits** capabilities.
 
 **Original FormalVerifML**: Created with ❤️ by the FormalVerifML Team
-**Certified Circuits Extension**: Developed by [tektonics](https://github.com/tektonics)
+**Certified Circuits Extension**: Developed by [The Lono Collective](https://github.com/the-lono-collective)
 
 See [CHANGELOG_CIRCUITS.md](CHANGELOG_CIRCUITS.md) for details on the circuit verification additions.
